@@ -66,7 +66,7 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         else:
             f.write("<strong style='color:red'>Failed:</strong>")
         f.write(info)
-        f.write("<br><a href=\"%s\">back</a>" % self.headers['referer'])
+        f.write("<br><a href=\"%s\">back</a>" % "nan")
         f.write("<hr></body>\n</html>\n")
         length = f.tell()
         f.seek(0)
@@ -85,13 +85,16 @@ class SimpleHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         remainbytes -= len(line)
         if not boundary in line:
             return (False, "Content NOT begin with boundary")
-        line = self.rfile.readline()
-        remainbytes -= len(line)
-        fn = re.findall(r'Content-Disposition.*name="file"; filename="(.*)"', line)[0]
-        if not fn:
-            return (False, "Can't find out file name...")
+        
+        while True:
+            line = self.rfile.readline()
+            remainbytes -= len(line)
+            fn = re.findall(r'Content-Disposition.*name="pcd"; filename="(.*)"', line)
+            if fn and fn[0]:
+                break
+
         path = self.translate_path(self.path)
-        fn = os.path.join(path, fn)
+        fn = os.path.join(path, fn[0])
         while os.path.exists(fn):
             fn += "_"
         line = self.rfile.readline()
